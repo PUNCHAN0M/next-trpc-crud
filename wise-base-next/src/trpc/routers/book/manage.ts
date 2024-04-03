@@ -9,7 +9,7 @@ export const manageBookRouter = router({
     .mutation(async({ ctx, input }) => {
       const foundBook = await ctx.apiClient.findOneBook(input)
       if (!foundBook) throw new Error("Book Not found")
-      return true;
+      return ctx.apiClient.deleteBook(input);
     }),
   create: publicProcedure
     .input(createBookScheme)

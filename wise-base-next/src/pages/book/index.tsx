@@ -65,7 +65,6 @@ export function Books({
     queryFn: () => trpcClient.book.list.query(),
     initialData: books ? ok(books) : undefined,
   })
-
   return (
     <div>
       <div className="flex flex-row justify-between p-5">
@@ -79,7 +78,7 @@ export function Books({
             {listBooksQuery.data?.val &&
               listBooksQuery.data.val.map((e) => (
                 <div key={e.id}>
-                  <Book book={e} />
+                  <Book book={e} trpcClient={trpcClient} />
                 </div>
               ))}
           </div>
@@ -89,13 +88,20 @@ export function Books({
   )
 }
 
-
 //inside pageBook
-type BookProps = { book: Book }
+type BookProps = {
+  book: Book
+  trpcClient: TRPCClient
+}
 
 function Book(props: BookProps): JSX.Element {
-  const { book } = props
-
+  const queryClient = useQueryClient()
+  const { book, trpcClient } = props
+  const deleteTagMutation = useMutation(trpcClient.book.manage.delete.mutate, {
+    onSuccess: () => {
+      void queryClient.invalidateQueries(['listBooks'])
+    },
+  })
   return (
     <div className="my-4 mx-auto w-96 space-y-3 rounded bg-white p-6">
       <div className="flex flex-row items-center justify-between">
@@ -133,7 +139,12 @@ function Book(props: BookProps): JSX.Element {
             </button>
           </div>
           <div>
-            <button className="flex flex-row items-center space-x-5 bg-red-800" >
+            <button
+              className="flex flex-row items-center space-x-5 bg-red-800"
+              onClick={() => {
+                deleteTagMutation.mutate({ bookId: book.id })
+              }}
+            >
               delete
             </button>
           </div>
